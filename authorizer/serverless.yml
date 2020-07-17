@@ -1,0 +1,15 @@
+service: authorizer
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  region: eu-west-2
+  deploymentBucket:
+    name: iamarla-serverless
+
+package:
+  individually: true
+
+functions:
+  authorize:
+      handler: handler.authorize

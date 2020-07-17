@@ -1,0 +1,87 @@
+org: jacquesiamarla
+app: user-profile
+service: user-profile
+
+provider:
+  name: aws
+  region: eu-west-2
+  deploymentBucket:
+    name: iamarla-serverless
+  environment:
+    # DYNAMODB_TABLE: 'user-profile'
+    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:*"
+
+package:
+  individually: true
+
+plugins:
+  - serverless-api-gateway-caching
+  - serverless-api-compression
+
+custom:
+  apiGatewayCaching:
+    enabled: true
+  contentEncoding:
+    contentCompression: 100
+
+functions:
+  create:
+    handler: handlers/create.create
+    events:
+      - http:
+          path: ${self:service}/
+          method: post
+          cors: true
+          authorizer:
+              arn: arn:aws:lambda:eu-west-2:871009477593:function:authorizer-${opt:stage, self:provider.stage}-authorize
+  update:
+    handler: handlers/update.update
+    events:
+      - http:
+          path: ${self:service}/
+          method: put
+          cors: true
+          authorizer:
+              arn: arn:aws:lambda:eu-west-2:871009477593:function:authorizer-${opt:stage, self:provider.stage}-authorize
+
+  read:
+    handler: handlers/read.read
+    events:
+      - http:
+          path: ${self:service}/{clientId}
+          method: get
+          cors: true
+          caching:
+            enabled: true
+            cacheKeyParameters:
+              - name: request.path.clientId
+
+
+
+resources:
+  Resources:
+    IAmArlaDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}

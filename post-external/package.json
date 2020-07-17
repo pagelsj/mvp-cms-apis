@@ -1,0 +1,23 @@
+{
+  "name": "post-external",
+  "version": "1.0.0",
+  "description": "External Post API for iamArla.com",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/iamarla-dev/post-external.git"
+  },
+  "author": "Jacques Pagels",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/iamarla-dev/post-external#readme",
+  "dependencies": {
+    "aws-sdk": "^2.573.0",
+    "serverless": "^1.57.0",
+    "serverless-api-compression": "^1.0.1",
+    "serverless-api-gateway-caching": "^1.4.1",
+    "uuid": "^3.3.3"
+  }
+}

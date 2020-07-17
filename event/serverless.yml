@@ -1,0 +1,170 @@
+org: jacquesiamarla
+app: events
+service: events
+
+provider:
+  name: aws
+  region: eu-west-2
+  deploymentBucket:
+    name: iamarla-serverless
+  environment:
+    # DYNAMODB_TABLE: 'events'
+    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:*"
+
+package:
+  individually: true
+
+functions:
+   # ADMIN
+  adminCreate:
+    handler: handlers/admin/create.create
+    events:
+      - http:
+          path: ${self:service}/admin/
+          method: post
+          cors: true
+          authorizer:
+              arn: arn:aws:lambda:eu-west-2:871009477593:function:authorizer-${opt:stage, self:provider.stage}-authorize
+  adminDelete:
+    handler: handlers/admin/delete.delete
+    events:
+      - http:
+          path: ${self:service}/admin/{title}
+          method: delete
+          cors: true
+          authorizer:
+              arn: arn:aws:lambda:eu-west-2:871009477593:function:authorizer-${opt:stage, self:provider.stage}-authorize
+
+  adminUpdate:
+    handler: handlers/admin/update.update
+    events:
+      - http:
+          path: ${self:service}/admin/
+          method: put
+          cors: true
+          authorizer:
+              arn: arn:aws:lambda:eu-west-2:871009477593:function:authorizer-${opt:stage, self:provider.stage}-authorize
+
+  adminReadAll:
+    handler: handlers/admin/readAll.readAll
+    events:
+      - http:
+          path: ${self:service}/admin/
+          method: get
+          cors: true
+          authorizer:
+              arn: arn:aws:lambda:eu-west-2:871009477593:function:authorizer-${opt:stage, self:provider.stage}-authorize
+
+  # GUEST
+  read:
+    handler: handlers/read.read
+    events:
+      - http:
+          path: ${self:service}/{title}
+          method: get
+          cors: true
+
+  readAll:
+    handler: handlers/readAll.readAll
+    events:
+      - http:
+          path: ${self:service}/
+          method: get
+          cors: true
+
+
+resources:
+  Resources:
+    IAmArlaDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: title
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: slug
+            AttributeType: S
+          - AttributeName: eventLocation
+            AttributeType: S
+          - AttributeName: eventDate
+            AttributeType: S
+          - AttributeName: published
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+        GlobalSecondaryIndexes:
+          - IndexName: titleIndex
+            KeySchema:
+              - AttributeName: title
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+          - IndexName: slugIndex
+            KeySchema:
+              - AttributeName: slug
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+          - IndexName: userIdIndex
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+          - IndexName: locationIndex
+            KeySchema:
+              - AttributeName: eventLocation
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+          - IndexName: dateIndex
+            KeySchema:
+              - AttributeName: eventDate
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+          - IndexName: publishedIndex
+            KeySchema:
+              - AttributeName: published
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}

@@ -1,0 +1,45 @@
+org: jacquesiamarla
+app: image-upload
+service: imageUpload
+
+
+provider:
+  name: aws
+  region: eu-west-2
+  deploymentBucket:
+    name: iamarla-serverless
+  environment:
+    UPLOAD_BUCKET: 'iamarla-uploads'
+    # DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:PutObjectAcl
+        - s3:GetObject
+        - s3:DeleteObject
+      Resource: "arn:aws:s3:::${self:provider.environment.UPLOAD_BUCKET}/*"
+
+package:
+  individually: true
+
+functions:
+  upload:
+    handler: handlers/upload.upload
+    events:
+      - http:
+          path: ${self:service}/
+          method: post
+          cors: true
+          authorizer:
+              arn: arn:aws:lambda:eu-west-2:871009477593:function:authorizer-${opt:stage, self:provider.stage}-authorize
+
+  delete:
+    handler: handlers/delete.delete
+    events:
+      - http:
+          path: ${self:service}/
+          method: delete
+          cors: true
+          authorizer:
+              arn: arn:aws:lambda:eu-west-2:871009477593:function:authorizer-${opt:stage, self:provider.stage}-authorize

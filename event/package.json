@@ -1,0 +1,22 @@
+{
+  "name": "profile",
+  "version": "1.0.0",
+  "description": "Profile API for iamArla.com",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/iamarla-dev/profile.git"
+  },
+  "author": "Jacques Pagels",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/iamarla-dev/profile#readme",
+  "dependencies": {
+    "aws-sdk": "^2.573.0",
+    "serverless": "^1.57.0",
+    "serverless-api-gateway-caching": "^1.4.1",
+    "uuid": "^3.3.3"
+  }
+}

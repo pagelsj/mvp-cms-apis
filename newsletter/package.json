@@ -1,0 +1,21 @@
+{
+  "name": "newsletter",
+  "version": "1.0.0",
+  "description": "Newsletter API for iamArla.com",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/iamarla-dev/newsletter.git"
+  },
+  "author": "Jacques Pagels",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/iamarla-dev/newsletter#readme",
+  "dependencies": {
+    "aws-sdk": "^2.573.0",
+    "serverless": "^1.57.0",
+    "uuid": "^3.3.3"
+  }
+}

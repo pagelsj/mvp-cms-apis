@@ -1,0 +1,53 @@
+org: jacquesiamarla
+app: authentication
+service: authentication
+
+provider:
+  name: aws
+  region: eu-west-2
+  deploymentBucket:
+    name: iamarla-serverless
+
+package:
+  individually: true
+
+functions:
+  register:
+    handler: handlers/register.register
+    events:
+      - http:
+          path: /register
+          method: post
+          cors: true
+
+  login:
+    handler: handlers/login.login
+    events:
+      - http:
+          path: /login
+          method: post
+          cors: true
+
+  confirmRegistration:
+    handler: handlers/confirm-registration.confirm
+    events:
+      - http:
+          path: /confirm
+          method: post
+          cors: true
+
+  changePassword:
+    handler: handlers/change-password.changePassword
+    events:
+      - http:
+          path: /change-password
+          method: post
+          cors: true
+
+  resetConfirmation:
+    handler: handlers/resend-confirmation.resendConfirmation
+    events:
+      - http:
+          path: /resend-confirmation
+          method: post
+          cors: true

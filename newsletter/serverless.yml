@@ -1,0 +1,56 @@
+service: newsletter
+
+provider:
+  name: aws
+  region: eu-west-2
+  deploymentBucket:
+    name: iamarla-serverless
+  environment:
+    DYNAMODB_TABLE: 'newsletter'
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Scan
+        - dynamodb:PutItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:*"
+
+package:
+  individually: true
+
+functions:
+  create:
+    handler: handlers/create.create
+    events:
+      - http:
+          path: /
+          method: post
+          cors: true
+          authorizer:
+              arn: arn:aws:lambda:eu-west-2:871009477593:function:authorizer-dev-authorize
+
+  # readAll:
+  #   handler: handlers/readAll.readAll
+  #   events:
+  #     - http:
+  #         path: /
+  #         method: get
+  #         cors: true
+
+resources:
+  Resources:
+    VoxlyInsightsDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}

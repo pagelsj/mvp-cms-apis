@@ -1,0 +1,181 @@
+org: jacquesiamarla
+app: external-post
+service: external-post
+
+provider:
+  name: aws
+  region: eu-west-2
+  deploymentBucket:
+    name: iamarla-serverless
+  environment:
+    # DYNAMODB_TABLE: 'external-post'
+    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:*"
+
+package:
+  individually: true
+
+plugins:
+  - serverless-api-gateway-caching
+  - serverless-api-compression
+
+custom:
+  apiGatewayCaching:
+    enabled: true
+  contentEncoding:
+    contentCompression: 100
+
+functions:
+  # ADMIN
+  adminCreate:
+    handler: handlers/admin/create.create
+    events:
+      - http:
+          path: ${self:service}/admin/
+          method: post
+          cors: true
+          authorizer:
+              arn: arn:aws:lambda:eu-west-2:871009477593:function:authorizer-${opt:stage, self:provider.stage}-authorize
+
+  adminDelete:
+    handler: handlers/admin/delete.delete
+    events:
+      - http:
+          path: ${self:service}/admin/{title}
+          method: delete
+          cors: true
+          authorizer:
+              arn: arn:aws:lambda:eu-west-2:871009477593:function:authorizer-${opt:stage, self:provider.stage}-authorize
+
+  adminUpdate:
+    handler: handlers/admin/update.update
+    events:
+      - http:
+          path: ${self:service}/admin/
+          method: put
+          cors: true
+          authorizer:
+              arn: arn:aws:lambda:eu-west-2:871009477593:function:authorizer-${opt:stage, self:provider.stage}-authorize
+
+  adminReadAll:
+    handler: handlers/admin/readAll.readAll
+    events:
+      - http:
+          path: ${self:service}/admin/
+          method: get
+          cors: true
+          authorizer:
+              arn: arn:aws:lambda:eu-west-2:871009477593:function:authorizer-${opt:stage, self:provider.stage}-authorize
+
+  # GUEST
+  read:
+    handler: handlers/read.read
+    events:
+      - http:
+          path: ${self:service}/{title}
+          method: get
+          cors: true
+          caching:
+            cacheKeyParameters:
+              - name: request.path.title
+
+  readAll:
+    handler: handlers/readAll.readAll
+    events:
+      - http:
+          path: ${self:service}/
+          method: get
+          cors: true
+
+  readCategory:
+    handler: handlers/readAll.readAll
+    events:
+      - http:
+          path: ${self:service}/category/{title}
+          method: get
+          cors: true
+
+  readTag:
+    handler: handlers/readTag.readTag
+    events:
+      - http:
+          path: ${self:service}/tag/{title}
+          method: get
+          cors: true
+
+resources:
+  Resources:
+    IAmArlaDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: title
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: slug
+            AttributeType: S
+          - AttributeName: published
+            AttributeType: S
+          - AttributeName: category
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+        GlobalSecondaryIndexes:
+          - IndexName: titleIndex
+            KeySchema:
+              - AttributeName: title
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+          - IndexName: publishedIndex
+            KeySchema:
+              - AttributeName: published
+                KeyType: HASH
+              - AttributeName: category
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+          - IndexName: slugIndex
+            KeySchema:
+              - AttributeName: slug
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+          - IndexName: userIdIndex
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
