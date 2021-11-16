@@ -15,7 +15,7 @@
   "homepage": "https://bitbucket.org/iamarla-dev/authentication#readme",
   "dependencies": {
     "amazon-cognito-identity-js": "^3.2.0",
-    "aws-sdk": "^2.573.0",
+    "aws-sdk": "^2.814.0",
     "node-fetch": "^2.6.0",
     "serverless": "^1.57.0",
     "uuid": "^3.3.3"
