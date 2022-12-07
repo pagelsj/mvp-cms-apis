@@ -15,7 +15,7 @@
   "homepage": "https://bitbucket.org/iamarla-dev/profile#readme",
   "dependencies": {
     "aws-sdk": "^2.573.0",
-    "serverless": "^1.57.0",
+    "serverless": "^3.25.1",
     "serverless-api-gateway-caching": "^1.4.1",
     "uuid": "^3.3.3"
   }
